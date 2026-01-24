@@ -1,0 +1,70 @@
+# PINN Porous Media Training Configuration
+
+# Data settings
+data:
+  train_num_samples: 256
+  valid_num_samples: 64
+
+# Training settings
+training:
+  save_dir: 'checkpoints/unet_Dec22'
+  read_ckpt: None
+  fem_iterations: 500
+  num_epochs: 3
+  batch_size: 1
+  Tmax: 100
+  lambda_ux: 1.0
+  lambda_uy: 1.0
+  lambda_p:  1.0
+  enable_progress_bar: False
+  enable_model_summary: False
+  enable_validation: True
+  log_every_n_steps: 1
+  accelerator: 'auto'
+  strategy: 'ddp'
+  precision: '16-mixed'
+  num_gpus: 2
+
+# Checkpoint settings
+checkpoint:
+  filename: 'model_{epoch}'
+  save_top_k: 3
+  monitor: 'val_loss'
+  mode: 'min'
+  save_last: true
+  every_n_epochs: 1
+
+# Model settings
+model:
+  type: 'unet'
+  learning_rate: 1.0e-4
+  
+  # UNet specific parameters
+  unet_config:
+    sample_size: [32, 32]
+    in_channels: 1
+    out_channels: 3
+    init_method: None # Options: kaiming, xavier, orthogonal, normal, zeros, near_zero
+    init_gain: 0.02  # Controls how close to zero the initialization will be
+    layers_per_block: 2
+    block_out_channels: [64, 128, 256]
+    norm_num_groups: 8
+    down_block_types: ["DownBlock2D", "DownBlock2D", "DownBlock2D"]
+    up_block_types: ["UpBlock2D", "UpBlock2D", "UpBlock2D"]
+    attention_head_dim: 8
+    
+    # Normalization parameters
+    ux_min: -1.5
+    ux_max: 1.5
+    uy_min: -1.5
+    uy_max: 1.5
+    pressure_min: -1.0
+    pressure_max: 1.0
+
+
+
+# Dataloader settings
+dataloader:
+  num_workers: 1
+  pin_memory: true
+  persistent_workers: true
