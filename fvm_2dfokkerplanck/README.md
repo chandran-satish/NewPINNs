@@ -148,14 +148,6 @@ python utils_fpe_data.py
 python pinn_fpe.py --config config_fpe.yaml
 ```
 
-Supports:
-- Multi-GPU (DDP)
-- Mixed precision
-- Checkpointing
-- TensorBoard logging
-
----
-
 ## Inference & Visualization
 
 Use:
