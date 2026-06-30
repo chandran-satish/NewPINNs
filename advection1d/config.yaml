@@ -1,0 +1,38 @@
+data:
+  train_file: ./data/data_train_256.h5
+  val_file:   ./data/data_val_16.h5
+
+time:
+  t0:  0.0
+  t1:  0.3
+  dt:  0.05
+  n_i: 1          # one solver step per network interval
+
+spatial:
+  x0:       0.0
+  x1:       1.0
+  n_points: 100   # number of spatial cells
+
+solver:
+  substeps_per_dt: 1  # unused for advection; kept for API compatibility
+
+network:
+  input_dim:  3       # (t, α, x)
+  output_dim: 1
+  hidden_dim: 64
+  num_layers: 16
+  activation: silu
+
+training:
+  max_epochs:         5000
+  batch_size:         64  # effectively full-batch (all pairs in one step)
+  lr:                 5.0e-4
+  weight_decay:       1.0e-4
+  ic_weight:          10.0    # weight on IC loss
+  lr_min_factor:      0.01    # eta_min = lr * lr_min_factor at the bottom of each cycle
+  lr_restart_period:  50      # epochs per cosine annealing restart (T_0)
+  gradient_clip_val:  1.0
+  log_every_n_steps:  1
+  save_every_n_epochs: 500
+  model_path:         newpinns_advection_weights.pth
+  checkpoint_dir:     checkpoints/Mar8_2

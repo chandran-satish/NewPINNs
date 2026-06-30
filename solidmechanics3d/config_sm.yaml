@@ -1,0 +1,87 @@
+# NewPINNs 3D Linear Elasticity Training Configuration
+#
+# Problem: cantilever beam with 3 cylindrical holes, clamped at x=0,
+# tip-loaded on x=Lx. Parameter swept: Poisson's ratio ν ∈ [NU_MIN, NU_MAX]
+# (set in utils_sm_data.py). E and force fixed.
+#
+# Spatial grid: (NZ, NY, NX) = (32, 16, 96) — also fixed in utils_sm_data.py.
+
+# Data settings
+data:
+  train_num_samples: 256
+  valid_num_samples: 32
+
+# Training settings
+training:
+  save_dir: 'checkpoints/May14_2_4'
+  read_ckpt: 'checkpoints/May14_2_3/model_epoch=277.ckpt'
+
+  # NewPINNs solver loop: number of preconditioned Richardson iterations
+  # the solver runs per training sample. With BDDC preconditioning this
+  # converges quickly, so keep this small to preserve gradient signal
+  # (we want a partial correction, not full convergence). Sweep this.
+  fem_iterations: 5 #20
+
+  num_epochs: 600
+  batch_size: 1
+  Tmax: 1
+
+  # Per-component loss weights for the masked MSE
+  lambda_u: 1.0
+  lambda_v: 1.0
+  lambda_w: 1.0
+
+  enable_progress_bar: False
+  enable_model_summary: False
+  enable_validation: True
+  log_every_n_steps: 1
+  accelerator: 'auto'
+  strategy: 'ddp'
+  precision: '32-true'
+  num_gpus: 1
+  accumulate_grad_batches: 64
+
+# Checkpoint settings
+checkpoint:
+  filename: 'model_{epoch}'
+  save_top_k: 3
+  monitor: 'val_loss'
+  mode: 'min'
+  save_last: true
+  every_n_epochs: 1
+
+# Model settings
+model:
+  type: 'unet'
+  learning_rate: 1.0e-5
+
+  unet_config:
+    # I/O
+    in_channels: 2            # [ν_norm, mask]
+    out_channels: 3           # [U, V, W]
+
+    # Channel widths per encoder level. With 3 entries we get 2 down /
+    # 2 up stages. With the default grid (32, 16, 96), the deepest
+    # feature map is (8, 4, 24) — all divisible by 4. Going to 4 entries
+    # (3 downs) would force ny = 16 → 2, which is workable but tight.
+    block_out_channels: [64, 128, 256]
+    norm_num_groups: 8
+
+    init_method: kaiming      # None | kaiming | xavier | orthogonal | normal | zeros | near_zero
+    init_gain: 0.02
+
+    # Informational output ranges (not enforced in forward); rough
+    # expected magnitudes for the default E_FIXED=1.0, force=1e-3
+    # beam under the ν ∈ [0.1, 0.45] sweep.
+    U_min: -0.6
+    U_max:  0.6
+    V_min: -0.1
+    V_max:  0.1
+    W_min: -0.1
+    W_max:  0.1
+
+# Dataloader settings
+dataloader:
+  num_workers: 1
+  pin_memory: true
+  persistent_workers: true

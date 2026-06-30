@@ -1,0 +1,76 @@
+# ═══════════════════════════════════════════════════════════════════
+#  NewPINNs – 2D Shallow Water Equations (Radial Dam Break, U-Net)
+# ═══════════════════════════════════════════════════════════════════
+#
+#  PDE:  h_t + (hu)_x + (hv)_y = 0
+#        (hu)_t + (hu² + ½gh²)_x + (huv)_y = 0
+#        (hv)_t + (huv)_x + (hv² + ½gh²)_y = 0
+#
+#  IC:       Radial dam break — circular region of depth h_in
+#  Parameter: h_in (inner dam height) ∈ [1.5, 3.0]
+#  Fixed:     h_out = 1.0, dam_radius = 0.5, grav = 1.0
+# ═══════════════════════════════════════════════════════════════════
+
+spatial:
+  x0: -2.5
+  x1:  2.5
+  y0: -2.5
+  y1:  2.5
+  nx: 64
+  ny: 64
+
+time:
+  t0: 0.0
+  t1: 2.5
+  dt: 0.25          # macro time-step → 11 time points
+  n_i: 1
+
+physics:
+  grav: 1.0
+  h_out: 1.0
+  dam_radius: 0.5
+
+parameter:
+  name: h_in
+  min: 1.5
+  max: 3.0
+
+unet:
+  sample_size: [64, 64]
+  in_channels: 2             # (t, h_in) as constant images
+  out_channels: 3            # (h, hu, hv)
+  layers_per_block: 2
+  block_out_channels: [32, 64, 128]
+  norm_num_groups: 4
+  down_block_types: ["DownBlock2D", "DownBlock2D", "DownBlock2D"]
+  up_block_types:   ["UpBlock2D",   "UpBlock2D",   "UpBlock2D"]
+  attention_head_dim: 4
+  init_method: kaiming
+  init_gain: 0.02
+
+training:
+  batch_size: 8
+  max_epochs: 2000
+  pretrain_epochs: 10
+  lr: 1.0e-3
+  lr_phase2: 1.0e-4
+  weight_decay: 1.0e-4
+  ic_weight: 10.0
+  gradient_clip_val: 1.0
+  lr_min_factor: 0.01
+  lr_restart_period: 100
+  log_every_n_steps: 1
+  checkpoint_dir: checkpoints/swe2d
+  save_every_n_epochs: 100
+  model_path: newpinns_swe2d_weights.pth
+  # ckpt_path: checkpoints/swe2d/last.ckpt
+
+data:
+  pretrain_file: ./data/swe2d_pretrain.h5
+  train_file:    ./data/swe2d_train.h5
+  val_file:      ./data/swe2d_val.h5
+
+solver:
+  max_workers: 8
+  use_threads: true
+  riemann_solver: roe
