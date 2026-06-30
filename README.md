@@ -11,9 +11,9 @@ Paper: https://arxiv.org/abs/2601.17207
 If you use this code or the NewPINNs framework in your research, please cite:
 
 ```
-@misc{makki2026newpinnsphysicsinformingneuralnetworks,
+@misc{chandran2026newpinnsphysicsinformingneuralnetworks,
       title={NewPINNs: Physics-Informing Neural Networks Using Conventional Solvers for Partial Differential Equations}, 
-      author={Maedeh Makki and Satish Chandran and Maziar Raissi and Adrien Grenier and Behzad Mohebbi},
+      author={Satish Chandran and Maedeh Makki and Maziar Raissi and Adrien Grenier and Behzad Mohebbi},
       year={2026},
       eprint={2601.17207},
       archivePrefix={arXiv},
